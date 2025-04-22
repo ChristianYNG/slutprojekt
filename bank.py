@@ -7,8 +7,8 @@ class Account: # Klass för att skapa konton
     def deposit(self, amount):
         if amount > 0:
             self.balance += amount # Lägg till ett insättning
-            print(f"{amount} SEK successfully deposited to account {account_number} ")
-            self.history.append(f"deposit: {amount} SEK") # sparar insättningne i en lista
+            print(f"{amount} SEK successfully deposited to account {self.account_number} ")
+            self.history.append(f"deposit: {amount} SEK") # sparar insättningen i en lista
         else:
             print("Deposit must be larger than 0 SEK")
     def withdraw(self, amount):
@@ -21,20 +21,25 @@ class Account: # Klass för att skapa konton
     def check_balance(self):
         print(f"Available Balance: {self.balance} SEK")
 
-    def transfer(self, transfer_amount):
-        print(f"{transfer_amount} succesfully transfered to account {4455}")
+    def transfer(self, transfer_amount, target_account_number):
         if 0 < transfer_amount <= self.balance:
+            if target_account_number in accounts:
+                target_account = accounts[target_account_number]
+            else:
+                print(f"Account {target_account_number} does not exist. Creating a new account.")
+                target_account = Account(target_account_number)
+                accounts[target_account_number] = target_account
+
             self.balance -= transfer_amount
-            accounts[5454].balance += transfer_amount
-            self.history.append(f"Transfer: -{transfer_amount} SEK to account 5454") # Lägger till i history
-            accounts[5454].history.append(f"Transfer: +{transfer_amount} SEK from account {self.account_number}")
-            print(f"{transfer_amount} SEK successfully transferred to account 5454")
+            target_account.balance += transfer_amount
+            self.history.append(f"Transfer: -{transfer_amount} SEK to account {target_account_number}")
+            target_account.history.append(f"Transfer: +{transfer_amount} SEK from account {self.account_number}")
+            print(f"{transfer_amount} SEK successfully transferred to account {target_account_number}")
         else:
             print("Error transferring given amount")
 
 
-accounts = {5454: Account(5454)} # En dict som håller alla kontonummer, 
-
+accounts = {} 
 while True:
     print("\n1. Sign In\n2. Exit")
     main_choice = input("Choose an option: ")
@@ -51,33 +56,30 @@ while True:
 
         # Meny loop
         while True:
-            choice = input("\n1. Check Balance\n2. Deposit\n3. Withdraw\n4. Transaction History\n5. Sign Out: ")
+            choice = input("\n1. Check Balance\n2. Deposit\n3. Withdraw  \n4. Transfer \n5. Transaction History\n 6. Log out: ")
 
             if choice == "1" or choice.lower() == "check balance":
                 user_account.check_balance()
 
             elif choice == "2" or choice.lower() == "deposit":
                 amount = float(input("Enter amount to deposit: "))
+                user_account.deposit(amount)
 
-
-            elif choice == "3" or choice.lower() == "transfer":
-                transfer_amount = float(input("Enter amount to transfer to savings: "))
-
-
-            elif choice == "4" or choice.lower() == "withdraw":
+            elif choice == "3" or choice.lower() == "withdraw":
                 amount = float(input("Enter amount to withdraw: "))
                 user_account.withdraw(amount)
 
-            elif choice == "5" or choice.lower() == "transfer":
+            elif choice == "4" or choice.lower() == "transfer":
                 transfer_amount = float(input("Enter amount to transfer: "))
-                user_account.transfer(transfer_amount)
+                target_account_number = int(input("Enter target account number: "))
+                user_account.transfer(transfer_amount, target_account_number)
 
-            elif choice == "6" or choice.lower() == "transaction history":
+            elif choice == "5" or choice.lower() == "transaction history":
                 print("Transaction History:")
                 for entry in user_account.history:
                     print(entry)
 
-            elif choice == "7" or choice.lower() == "sign out":
+            elif choice == "6" or choice.lower() == "sign out":
                 print("Signed out successfully!")
                 break  
 
