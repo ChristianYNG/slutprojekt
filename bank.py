@@ -1,3 +1,16 @@
+from tkinter import *
+from tkinter import messagebox
+import random
+
+# Interface
+
+window = Tk()
+window.title("SEB Bank")
+window.geometry('500x500')
+
+account_entry = Entry(window)
+account_entry.pack()
+
 class Account: # Klass för att skapa konton
     def __init__(self, account_number):
         self.account_number = account_number
@@ -22,18 +35,18 @@ class Account: # Klass för att skapa konton
         print(f"Available Balance: {self.balance} SEK")
 
     def transfer(self, transfer_amount, target_account_number):
-        if 0 < transfer_amount <= self.balance:
-            if target_account_number in accounts:
-                target_account = accounts[target_account_number]
+        if 0 < transfer_amount <= self.balance: # kollar om pengerna finns på kontot
+            if target_account_number in accounts: 
+                target_account = accounts[target_account_number] # Om kontot finns i dicten
             else:
                 print(f"Account {target_account_number} does not exist. Creating a new account.")
-                target_account = Account(target_account_number)
-                accounts[target_account_number] = target_account
+                target_account = Account(target_account_number) # skapar kontot om det inte finns
+                accounts[target_account_number] = target_account # sätter det nyskapde kontot som target account
 
-            self.balance -= transfer_amount
-            target_account.balance += transfer_amount
-            self.history.append(f"Transfer: -{transfer_amount} SEK to account {target_account_number}")
-            target_account.history.append(f"Transfer: +{transfer_amount} SEK from account {self.account_number}")
+            self.balance -= transfer_amount  # tar bort transfer summan från balans...
+            target_account.balance += transfer_amount #.. och sätter in i nya kontot 
+            self.history.append(f"Transfer: -{transfer_amount} SEK to account {target_account_number}") # lägger in det i historik
+            target_account.history.append(f"Transfer: +{transfer_amount} SEK from account {self.account_number}")  
             print(f"{transfer_amount} SEK successfully transferred to account {target_account_number}")
         else:
             print("Error transferring given amount")
@@ -92,3 +105,5 @@ while True:
 
     else:
         print("Invalid choice.")
+
+window.mainloop()
