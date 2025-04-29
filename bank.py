@@ -1,17 +1,17 @@
 from tkinter import *
-from tkinter import messagebox
-import random
+from tkinter import simpledialog, messagebox
 
-# Interface
-
+# Skapa huvudfönster
 window = Tk()
-window.title("SEB Bank")
-window.geometry('500x500')
+window.title("SEB Bank: Log In")
+window.geometry('400x400')
+window.configure(bg='lightgreen') 
 
-account_entry = Entry(window)
-account_entry.pack()
 
-class Account: # Klass för att skapa konton
+accounts = {}
+user_account = None  # Global variabel för inloggat konto
+
+class Account:
     def __init__(self, account_number):
         self.account_number = account_number
         self.balance = 0.0
@@ -19,91 +19,104 @@ class Account: # Klass för att skapa konton
 
     def deposit(self, amount):
         if amount > 0:
-            self.balance += amount # Lägg till ett insättning
-            print(f"{amount} SEK successfully deposited to account {self.account_number} ")
-            self.history.append(f"deposit: {amount} SEK") # sparar insättningen i en lista
+            self.balance += amount
+            self.history.append(f"Deposit: {amount} SEK")
         else:
-            print("Deposit must be larger than 0 SEK")
+            messagebox.showerror("Error", "Deposit must be more than 0")
+
     def withdraw(self, amount):
         if 0 < amount <= self.balance:
             self.balance -= amount
-            self.history.append(f"Uttag: -{amount} SEK")
-        else: 
-            print("Error withdrawing given amount")
+            self.history.append(f"Withdraw: -{amount} SEK")
+        else:
+            messagebox.showerror("Error", "Insufficient funds or invalid amount")
 
     def check_balance(self):
-        print(f"Available Balance: {self.balance} SEK")
+        messagebox.showinfo("Balance", f"Balance: {self.balance} SEK")
 
-    def transfer(self, transfer_amount, target_account_number):
-        if 0 < transfer_amount <= self.balance: # kollar om pengerna finns på kontot
-            if target_account_number in accounts: 
-                target_account = accounts[target_account_number] # Om kontot finns i dicten
-            else:
-                print(f"Account {target_account_number} does not exist. Creating a new account.")
-                target_account = Account(target_account_number) # skapar kontot om det inte finns
-                accounts[target_account_number] = target_account # sätter det nyskapde kontot som target account
-
-            self.balance -= transfer_amount  # tar bort transfer summan från balans...
-            target_account.balance += transfer_amount #.. och sätter in i nya kontot 
-            self.history.append(f"Transfer: -{transfer_amount} SEK to account {target_account_number}") # lägger in det i historik
-            target_account.history.append(f"Transfer: +{transfer_amount} SEK from account {self.account_number}")  
-            print(f"{transfer_amount} SEK successfully transferred to account {target_account_number}")
+    def transfer(self, amount, target_account_number):
+        if 0 < amount <= self.balance:
+            if target_account_number not in accounts:
+                accounts[target_account_number] = Account(target_account_number)
+                accounts[target_account_number].history.append(f"Created by transfer from {self.account_number}")
+            target_account = accounts[target_account_number]
+            self.balance -= amount
+            target_account.balance += amount
+            self.history.append(f"Transfer: -{amount} SEK to {target_account_number}")
+            target_account.history.append(f"Transfer: +{amount} SEK from {self.account_number}")
+            messagebox.showinfo("Success", f"Transferred {amount} SEK to {target_account_number}")
         else:
-            print("Error transferring given amount")
+            messagebox.showerror("Error", "Insufficient funds or invalid amount")
 
-
-accounts = {} 
-while True:
-    print("\n1. Sign In\n2. Exit")
-    main_choice = input("Choose an option: ")
-
-    if main_choice == "1" or main_choice.lower == "sign in":
-        account_number = int(input("Account Number: ")) 
-
-        if account_number in accounts: # Kollar om kontot redan finns
+# Logik för GUI
+def sign_in():
+    global user_account
+    try:
+        account_number = int(account_entry.get())
+        if account_number in accounts:
             user_account = accounts[account_number]
-        else: # Adderar kontonummer till tomma dicten om den inte finns
-            print("New account created")
+            messagebox.showinfo("Logged In", f"Welcome back, account {account_number}!")
+        else:
             user_account = Account(account_number)
             accounts[account_number] = user_account
+            messagebox.showinfo("New Account", f"New account {account_number} created.")
+        show_main_menu()
+    except ValueError:
+        messagebox.showerror("Error", "Please enter a valid account number.")
 
-        # Meny loop
-        while True:
-            choice = input("\n1. Check Balance\n2. Deposit\n3. Withdraw  \n4. Transfer \n5. Transaction History\n 6. Log out: ")
+def show_main_menu():
+    for widget in window.winfo_children():
+        widget.destroy()
 
-            if choice == "1" or choice.lower() == "check balance":
-                user_account.check_balance()
+    Label(window, text=f"Account {user_account.account_number} - Menu", bg="green").pack(pady=10)
+    Button(window, text="Check Balance", command=user_account.check_balance).pack(pady=5)
+    Button(window, text="Deposit", command=gui_deposit).pack(pady=5)
+    Button(window, text="Withdraw", command=gui_withdraw).pack(pady=5)
+    Button(window, text="Transfer", command=gui_transfer).pack(pady=5)
+    Button(window, text="Transaction History", command=show_history).pack(pady=5)
+    Button(window, text="Sign Out", command=restart).pack(pady=5)
 
-            elif choice == "2" or choice.lower() == "deposit":
-                amount = float(input("Enter amount to deposit: "))
-                user_account.deposit(amount)
+def gui_deposit():
+    amount = simpledialog.askfloat("Deposit", "Enter amount to deposit:")
+    if amount is not None:
+        user_account.deposit(amount)
 
-            elif choice == "3" or choice.lower() == "withdraw":
-                amount = float(input("Enter amount to withdraw: "))
-                user_account.withdraw(amount)
+def gui_withdraw():
+    amount = simpledialog.askfloat("Withdraw", "Enter amount to withdraw:")
+    if amount is not None:
+        user_account.withdraw(amount)
 
-            elif choice == "4" or choice.lower() == "transfer":
-                transfer_amount = float(input("Enter amount to transfer: "))
-                target_account_number = int(input("Enter target account number: "))
-                user_account.transfer(transfer_amount, target_account_number)
+def gui_transfer():
+    amount = simpledialog.askfloat("Transfer", "Enter amount to transfer:")
+    target = simpledialog.askinteger("Transfer", "Enter target account number:")
+    if amount is not None and target is not None:
+        user_account.transfer(amount, target)
 
-            elif choice == "5" or choice.lower() == "transaction history":
-                print("Transaction History:")
-                for entry in user_account.history:
-                    print(entry)
-
-            elif choice == "6" or choice.lower() == "sign out":
-                print("Signed out successfully!")
-                break  
-
-            else:
-                print("Invalid choice.")
-
-    elif main_choice == "2":
-        print("Thank you for banking with us!")
-        break
-
+def show_history():
+    if user_account.history:
+        messagebox.showinfo("History", "\n".join(user_account.history))
     else:
-        print("Invalid choice.")
+        messagebox.showinfo("History", "No transactions yet.")
 
+def restart():
+    for widget in window.winfo_children():
+        widget.destroy()
+    draw_login()
+
+def exit_app():
+    messagebox.showinfo("Exit", "Thank you for banking with us!")
+    window.destroy()
+
+# Första inloggningsformuläret
+def draw_login():
+    Label(window, text="Account Number:", bg="white").pack(pady=10)
+    global account_entry
+    account_entry = Entry(window)
+    account_entry.pack()
+
+    Button(window, text="Sign In", command=sign_in).pack(pady=5)
+    Button(window, text="Exit", command=exit_app).pack(pady=5)
+
+# Starta GUI
+draw_login()
 window.mainloop()
