@@ -1,12 +1,28 @@
 from tkinter import *
 from tkinter import simpledialog, messagebox
+from PIL import Image, ImageTk
 
 # Skapa huvudfönster
 window = Tk()
 window.title("SEB Bank: Log In")
-window.geometry('400x400')
-window.configure(bg='lightgreen') 
+window.geometry('800x800')
+window.configure(bg='lightgreen')
 
+# === LOGO FRAME ===
+logo_frame = Frame(window, bg='lightgreen')
+logo_frame.pack(side='top', padx=0)
+
+Seblogo = Image.open(r"C:\Users\christian.young\Desktop\Filhantering\Slutprojekt\seblogopng.png")
+Seblogo = Seblogo.resize((300, 150))
+photo = ImageTk.PhotoImage(Seblogo)
+
+label_logo = Label(logo_frame, image=photo, bg='lightgreen')
+label_logo.image = photo
+label_logo.pack()
+
+# === CONTENT FRAME ===
+content_frame = Frame(window, bg='lightgreen')
+content_frame.pack(expand=True, fill='both')
 
 accounts = {}
 user_account = None  # Global variabel för inloggat konto
@@ -65,16 +81,18 @@ def sign_in():
         messagebox.showerror("Error", "Please enter a valid account number.")
 
 def show_main_menu():
-    for widget in window.winfo_children():
-        widget.destroy()
+    clear_window()
 
-    Label(window, text=f"Account {user_account.account_number} - Menu", bg="green").pack(pady=10)
-    Button(window, text="Check Balance", command=user_account.check_balance).pack(pady=5)
-    Button(window, text="Deposit", command=gui_deposit).pack(pady=5)
-    Button(window, text="Withdraw", command=gui_withdraw).pack(pady=5)
-    Button(window, text="Transfer", command=gui_transfer).pack(pady=5)
-    Button(window, text="Transaction History", command=show_history).pack(pady=5)
-    Button(window, text="Sign Out", command=restart).pack(pady=5)
+    frame = Frame(content_frame, bg='lightgreen')
+    frame.place(relx=0.5, rely=0.5, anchor='center')
+
+    Label(frame, text=f"Account {user_account.account_number} - Menu", bg="green").pack(pady=10)
+    Button(frame, text="Check Balance", width=20, command=user_account.check_balance).pack(pady=5)
+    Button(frame, text="Deposit", width=20, command=gui_deposit).pack(pady=5)
+    Button(frame, text="Withdraw", width=20, command=gui_withdraw).pack(pady=5)
+    Button(frame, text="Transfer", width=20, command=gui_transfer).pack(pady=5)
+    Button(frame, text="Transaction History", width=20, command=show_history).pack(pady=5)
+    Button(frame, text="Sign Out", width=20, command=restart).pack(pady=5)
 
 def gui_deposit():
     amount = simpledialog.askfloat("Deposit", "Enter amount to deposit:")
@@ -99,23 +117,31 @@ def show_history():
         messagebox.showinfo("History", "No transactions yet.")
 
 def restart():
-    for widget in window.winfo_children():
-        widget.destroy()
+    clear_window()
     draw_login()
 
 def exit_app():
     messagebox.showinfo("Exit", "Thank you for banking with us!")
     window.destroy()
 
+def clear_window():
+    for widget in content_frame.winfo_children():
+        widget.destroy()
+
 # Första inloggningsformuläret
 def draw_login():
-    Label(window, text="Account Number:", bg="white").pack(pady=10)
+    clear_window()
+
+    frame = Frame(content_frame, bg='lightgreen')
+    frame.place(relx=0.5, rely=0.5, anchor='center')
+
+    Label(frame, text="Account Number:", bg="white").pack(pady=10)
     global account_entry
-    account_entry = Entry(window)
+    account_entry = Entry(frame)
     account_entry.pack()
 
-    Button(window, text="Sign In", command=sign_in).pack(pady=5)
-    Button(window, text="Exit", command=exit_app).pack(pady=5)
+    Button(frame, text="Sign In", width=20, command=sign_in).pack(pady=5)
+    Button(frame, text="Exit", width=20, command=exit_app).pack(pady=5)
 
 # Starta GUI
 draw_login()
